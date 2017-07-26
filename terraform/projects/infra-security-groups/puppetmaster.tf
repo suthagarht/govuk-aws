@@ -35,6 +35,20 @@ resource "aws_security_group_rule" "allow_puppet_elb_in" {
   source_security_group_id = "${aws_security_group.puppetmaster_elb.id}"
 }
 
+# TODO temporary rule to allow management to puppetdb
+resource "aws_security_group_rule" "allow_puppetdb_elb_in" {
+  type      = "ingress"
+  from_port = 80
+  to_port   = 80
+  protocol  = "tcp"
+
+  # Which security group is the rule assigned to
+  security_group_id = "${aws_security_group.puppetmaster.id}"
+
+  # Which security group can use this rule
+  source_security_group_id = "${aws_security_group.puppetmaster_elb.id}"
+}
+
 resource "aws_security_group" "puppetmaster_elb" {
   name        = "${var.stackname}_puppetmaster_elb_access"
   vpc_id      = "${data.terraform_remote_state.infra_vpc.vpc_id}"
@@ -49,6 +63,17 @@ resource "aws_security_group_rule" "allow_management_to_puppet" {
   type      = "ingress"
   from_port = 8140
   to_port   = 8140
+  protocol  = "tcp"
+
+  security_group_id        = "${aws_security_group.puppetmaster_elb.id}"
+  source_security_group_id = "${aws_security_group.management.id}"
+}
+
+# TODO temporary rule to allow access to puppetdb from management
+resource "aws_security_group_rule" "allow_management_to_puppetdb" {
+  type      = "ingress"
+  from_port = 80
+  to_port   = 80
   protocol  = "tcp"
 
   security_group_id        = "${aws_security_group.puppetmaster_elb.id}"

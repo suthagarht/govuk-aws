@@ -97,6 +97,14 @@ resource "aws_elb" "puppetmaster_internal_elb" {
     lb_protocol       = "tcp"
   }
 
+  # TODO temporary access to puppetdb
+  listener {
+    instance_port     = "80"
+    instance_protocol = "tcp"
+    lb_port           = "80"
+    lb_protocol       = "tcp"
+  }
+
   health_check {
     healthy_threshold   = 2
     unhealthy_threshold = 2
@@ -116,6 +124,19 @@ resource "aws_elb" "puppetmaster_internal_elb" {
 resource "aws_route53_record" "service_record" {
   zone_id = "${data.terraform_remote_state.infra_stack_dns_zones.internal_zone_id}"
   name    = "puppet.${data.terraform_remote_state.infra_stack_dns_zones.internal_domain_name}"
+  type    = "A"
+
+  alias {
+    name                   = "${aws_elb.puppetmaster_internal_elb.dns_name}"
+    zone_id                = "${aws_elb.puppetmaster_internal_elb.zone_id}"
+    evaluate_target_health = true
+  }
+}
+
+# TODO temporary to allow access to puppetdb
+resource "aws_route53_record" "puppetdb_service_record" {
+  zone_id = "${data.terraform_remote_state.infra_stack_dns_zones.internal_zone_id}"
+  name    = "puppetdb.${data.terraform_remote_state.infra_stack_dns_zones.internal_domain_name}"
   type    = "A"
 
   alias {

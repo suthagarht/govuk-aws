@@ -8,7 +8,7 @@
 # stackname
 # aws_environment
 # ssh_public_key
-# elb_certname
+# elb_internal_certname
 #
 # === Outputs:
 #
@@ -34,7 +34,7 @@ variable "ssh_public_key" {
   description = "Default public key material"
 }
 
-variable "elb_certname" {
+variable "elb_internal_certname" {
   type        = "string"
   description = "The ACM cert domain name to find the ARN of"
 }
@@ -50,8 +50,8 @@ provider "aws" {
   region = "${var.aws_region}"
 }
 
-data "aws_acm_certificate" "elb_cert" {
-  domain   = "${var.elb_certname}"
+data "aws_acm_certificate" "internal_elb_cert" {
+  domain   = "${var.elb_internal_certname}"
   statuses = ["ISSUED"]
 }
 
@@ -67,7 +67,7 @@ resource "aws_elb" "frontend_elb" {
     lb_port           = 443
     lb_protocol       = "https"
 
-    ssl_certificate_id = "${data.aws_acm_certificate.elb_cert.arn}"
+    ssl_certificate_id = "${data.aws_acm_certificate.internal_elb_cert.arn}"
   }
 
   health_check {

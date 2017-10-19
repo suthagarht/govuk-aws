@@ -258,6 +258,48 @@ module "cache" {
   asg_desired_capacity          = "${var.asg_desired_capacity}"
 }
 
+module "alarms-autoscaling-cache" {
+  source                            = "../../modules/aws/alarms/autoscaling"
+  name_prefix                       = "${var.stackname}-cache"
+  autoscaling_group_name            = "${module.cache.autoscaling_group_name}"
+  alarm_actions                     = ["${data.terraform_remote_state.infra_stack_sns_alerts.sns_topic_alerts_arn}"]
+  groupinserviceinstances_threshold = "${var.asg_min_size}"
+}
+
+module "alarms-ec2-cache" {
+  source                   = "../../modules/aws/alarms/ec2"
+  name_prefix              = "${var.stackname}-cache"
+  autoscaling_group_name   = "${module.cache.autoscaling_group_name}"
+  alarm_actions            = ["${data.terraform_remote_state.infra_stack_sns_alerts.sns_topic_alerts_arn}"]
+  cpuutilization_threshold = "85"
+}
+
+module "alarms-elb-cache-internal" {
+  source                         = "../../modules/aws/alarms/elb"
+  name_prefix                    = "${var.stackname}-cache-internal"
+  alarm_actions                  = ["${data.terraform_remote_state.infra_stack_sns_alerts.sns_topic_alerts_arn}"]
+  elb_name                       = "${aws_elb.cache_elb.name}"
+  httpcode_backend_4xx_threshold = "100"
+  httpcode_backend_5xx_threshold = "100"
+  httpcode_elb_4xx_threshold     = "100"
+  httpcode_elb_5xx_threshold     = "100"
+  surgequeuelength_threshold     = "0"
+  healthyhostcount_threshold     = "0"
+}
+
+module "alarms-elb-cache-external" {
+  source                         = "../../modules/aws/alarms/elb"
+  name_prefix                    = "${var.stackname}-cache-external"
+  alarm_actions                  = ["${data.terraform_remote_state.infra_stack_sns_alerts.sns_topic_alerts_arn}"]
+  elb_name                       = "${aws_elb.cache_external_elb.name}"
+  httpcode_backend_4xx_threshold = "100"
+  httpcode_backend_5xx_threshold = "100"
+  httpcode_elb_4xx_threshold     = "100"
+  httpcode_elb_5xx_threshold     = "100"
+  surgequeuelength_threshold     = "0"
+  healthyhostcount_threshold     = "0"
+}
+
 # Outputs
 # --------------------------------------------------------------
 

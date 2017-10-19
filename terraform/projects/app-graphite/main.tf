@@ -254,6 +254,14 @@ resource "aws_iam_role_policy_attachment" "graphite_1_iam_role_policy_cloudwatch
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess"
 }
 
+module "alarms-ebs-graphite" {
+  source                      = "../../modules/aws/alarms/ebs"
+  name_prefix                 = "${var.stackname}-graphite-1"
+  volume_id                   = "${aws_ebs_volume.graphite-1.id}"
+  alarm_actions               = ["${data.terraform_remote_state.infra_stack_sns_alerts.sns_topic_alerts_arn}"]
+  volumequeuelength_threshold = "100"
+}
+
 # Outputs
 # --------------------------------------------------------------
 

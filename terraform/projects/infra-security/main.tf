@@ -48,6 +48,17 @@ variable "role_user_policy_arns" {
   default     = []
 }
 
+variable "role_user_replication_user_arns" {
+  type        = "list"
+  description = "List of ARNs of external users that can assume the role"
+}
+
+variable "role_user_replication_policy_arns" {
+  type        = "list"
+  description = "List of ARNs of policies to attach to the role"
+  default     = []
+}
+
 variable "ssh_public_key" {
   type        = "string"
   description = "The public part of an SSH keypair"
@@ -76,6 +87,13 @@ module "role_admin" {
 module "role_user" {
   source           = "../../modules/aws/iam/role_user"
   role_name        = "govuk-users"
+  role_user_arns   = ["${var.role_user_user_arns}"]
+  role_policy_arns = ["${var.role_user_policy_arns}"]
+}
+
+module "role_replication_user" {
+  source           = "../../modules/aws/iam/role_replication_user"
+  role_name        = "govuk-replication"
   role_user_arns   = ["${var.role_user_user_arns}"]
   role_policy_arns = ["${var.role_user_policy_arns}"]
 }

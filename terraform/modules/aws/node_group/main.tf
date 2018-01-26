@@ -49,6 +49,12 @@ variable "instance_ami_filter_name" {
   default     = "ubuntu/images/hvm-ssd/ubuntu-trusty-14.04-amd64-server-*"
 }
 
+variable "instance_ami_owner" {
+  type        = "string"
+  description = "Owner to use for AMI images for the instance"
+  default     = "099720109477"
+}
+
 variable "instance_type" {
   type        = "string"
   description = "Instance type"
@@ -178,7 +184,7 @@ data "aws_ami" "node_ami_ubuntu" {
     values = ["hvm"]
   }
 
-  owners = ["099720109477"]
+  owners = ["${var.instance_ami_owner}"]
 }
 
 resource "aws_iam_role" "node_iam_role" {

@@ -31,6 +31,7 @@ to use with Application Load Balancers with the `instance_target_group_arns` var
 | default_tags | Additional resource tags | map | `<map>` | no |
 | instance_additional_user_data | Append additional user-data script | string | `` | no |
 | instance_ami_filter_name | Name to use to find AMI images for the instance | string | `ubuntu/images/hvm-ssd/ubuntu-trusty-14.04-amd64-server-*` | no |
+| instance_ami_owner | Owner to use for AMI images for the instance | string | `099720109477` | no |
 | instance_default_policy | Name of the JSON file containing the default IAM role policy for the instance | string | `default_policy.json` | no |
 | instance_elb_ids | A list of the ELB IDs to attach this ASG to | list | `<list>` | no |
 | instance_elb_ids_length | Length of instance_elb_ids | string | `0` | no |

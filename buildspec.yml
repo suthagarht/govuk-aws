@@ -1,0 +1,31 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - sudo pip install boto3
+      - wget https://releases.hashicorp.com/terraform/0.11.2/terraform_0.11.2_linux_amd64.zip
+      - sudo unzip terraform_0.11.2_linux_amd64.zip -d /bin
+      - rm terraform_0.11.2_linux_amd64.zip
+      - wget https://github.com/mozilla/sops/releases/download/3.0.0/sops-3.0.0.linux
+      - sudo mv sops-3.0.0.linux /bin/sops
+      - sudo chmod +x /bin/sops
+      - sops --version
+      - wget https://github.com/github/hub/releases/download/v2.2.9/hub-linux-amd64-2.2.9.tgz && tar -xzf hub-linux-amd64-2.2.9.tgz
+      - sudo mv hub-linux-amd64-2.2.9/bin/hub /bin
+      - aws ssm describe-parameters
+      - echo "export GITHUB_TOKEN=$(aws ssm get-parameters --region eu-west-1 --names GithubPublic --with-decryption --query Parameters[0].Value)" > /tmp/github_cred_export.txt
+      - . /tmp/github_cred_export.txt
+      - hub-clone -b test-codedeploy https://github.com/alphagov/govuk-aws-data.git
+      - cd govuk-aws-data && sops -d data/common/test/common.secret.tfvars
+      - apt-get update
+      - apt-cache search source
+      - apt-get install -y curl jq
+      - curl 169.254.170.2$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI | jq 'to_entries | [ .[] | select(.key | (contains("Expiration") or contains("RoleArn"))  | not) ] |  map(if .key == "AccessKeyId" then . + {"key":"AWS_ACCESS_KEY_ID"} else . end) | map(if .key == "SecretAccessKey" then . + {"key":"AWS_SECRET_ACCESS_KEY"} else . end) | map(if .key == "Token" then . + {"key":"AWS_SESSION_TOKEN"} else . end) | map("export \(.key)=\(.value)") | .[]' -r > /tmp/aws_cred_export.txt # work around https://github.com/hashicorp/terraform/issues/8746
+      - echo "Prepare terraform file"
+  build:
+    commands:
+      - echo "Post apply build"
+  post_build:
+    commands:
+      - echo "Nothing to do in the post_build for now"
